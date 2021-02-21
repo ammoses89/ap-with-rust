@@ -3,7 +3,7 @@ mod domain;
 #[cfg(test)]
 mod tests {
     use crate::domain;
-    use crate::domain::{Allocator, allocate};
+    use crate::domain::Allocator;
 
     #[test]
     fn test_allocation_with_sufficient_batch_quantity() {
@@ -82,15 +82,22 @@ mod tests {
 
     #[test]
     fn test_allocates_warehouse_batches_before_shipping_batches() {
+        let mut allocator = domain::BatchAllocator::new();
         // Create a batch with quantity
         let shipping_batch = domain::Batch::new("ref-id", "blue-vase", 10, true);
-        let  warehouse_batch = domain::Batch::new("ref-id", "blue-vase", 10, false);
+        let warehouse_batch = domain::Batch::new("ref-id", "blue-vase", 10, false);
         // Create order with quantity
         let order_line = domain::OrderLine::new("order-ref-id", "blue-vase", 10);
 
-        allocate(&order_line, vec![shipping_batch, warehouse_batch]);
-        assert_eq!(shipping_batch.quantity, 10);
-        assert_eq!(warehouse_batch.quantity, 0);
+        allocator.add_batch(shipping_batch);
+        allocator.add_batch(warehouse_batch);
+        allocator.allocate(&order_line);
+
+        let sorted_batches = allocator.get_batches();
+
+        assert_eq!(sorted_batches[0].quantity, 0);
+        assert_eq!(sorted_batches[1].quantity, 10);
+        assert_eq!(sorted_batches[1].is_shipping, true);
 
     }
 }

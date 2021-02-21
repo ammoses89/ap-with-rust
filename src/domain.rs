@@ -1,11 +1,15 @@
 use chrono::{Date, Local};
 use std::collections::HashSet;
 use std::cmp::Ordering;
-use std::ops::{DerefMut, Deref};
+use std::ops::DerefMut;
 
 pub trait Allocator {
     fn allocate(&mut self, order_line: &OrderLine);
     fn deallocate(&mut self, order_line: &OrderLine);
+}
+
+pub struct BatchAllocator {
+   batches: Vec<Batch>,
 }
 
 pub struct Batch {
@@ -13,7 +17,7 @@ pub struct Batch {
     sku: String,
     pub(crate) quantity: i32,
     eta: Date<Local>,
-    is_shipping: bool,
+    pub(crate) is_shipping: bool,
     allocations: HashSet<String>,
 }
 
@@ -99,18 +103,52 @@ impl PartialEq for Batch {
 
 impl Eq for Batch { }
 
-pub fn allocate(order_line: &OrderLine, mut batches: Vec<Batch>) -> String {
-    let batch_reference= String::from("");
-    batches
-        .sort_by(|b1, b2| b1.cmp(&b2));
-
-
-    let preferred_batch_option = batches.iter_mut().next();
-
-    if preferred_batch_option.is_some() {
-        let preferred_batch = preferred_batch_option.unwrap();
-        preferred_batch.allocate(order_line);
+impl BatchAllocator {
+    pub fn new() -> Self {
+        BatchAllocator{
+            batches: vec![],
+        }
     }
 
-    return batch_reference;
+    pub fn add_batch(&mut self, batch: Batch) {
+        self.batches.push(batch);
+    }
+
+    pub fn sort_batches(&mut self) {
+        self.batches
+            .sort_by(|b1, b2| b1.cmp(&b2));
+    }
+
+    pub fn get_batches(&self) -> &Vec<Batch> {
+        return &self.batches;
+    }
 }
+
+impl Allocator for BatchAllocator {
+
+    fn allocate(&mut self, order_line: &OrderLine) {
+        self.sort_batches();
+        for (idx, batch) in self.batches.iter_mut().enumerate() {
+            if idx == 0 {
+                batch.allocate(order_line);
+            }
+        }
+    }
+
+    fn deallocate(&mut self, order_line: &OrderLine) {
+
+    }
+}
+
+//
+// pub fn allocate(order_line: &OrderLine, batches: Vec<&mut Batch>) -> String {
+//     let mut batch_reference= String::from("");
+//     let cloned_batches = batches.iter().cloned().collect();
+//     for (idx, batch) in cloned_batches.iter().enumerate() {
+//         if idx == 0 {
+//             batch.allocate(order_line);
+//             batch_reference = batch.reference.clone();
+//         }
+//     }
+//     return batch_reference;
+// }
