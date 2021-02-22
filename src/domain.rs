@@ -1,7 +1,6 @@
 use chrono::{Date, Local};
 use std::collections::HashSet;
 use std::cmp::Ordering;
-use std::ops::DerefMut;
 
 pub trait Allocator {
     fn allocate(&mut self, order_line: &OrderLine);
@@ -140,15 +139,3 @@ impl Allocator for BatchAllocator {
     }
 }
 
-//
-// pub fn allocate(order_line: &OrderLine, batches: Vec<&mut Batch>) -> String {
-//     let mut batch_reference= String::from("");
-//     let cloned_batches = batches.iter().cloned().collect();
-//     for (idx, batch) in cloned_batches.iter().enumerate() {
-//         if idx == 0 {
-//             batch.allocate(order_line);
-//             batch_reference = batch.reference.clone();
-//         }
-//     }
-//     return batch_reference;
-// }

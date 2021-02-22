@@ -4,6 +4,7 @@ mod domain;
 mod tests {
     use crate::domain;
     use crate::domain::Allocator;
+    use chrono::DateTime;
 
     #[test]
     fn test_allocation_with_sufficient_batch_quantity() {
@@ -86,6 +87,27 @@ mod tests {
         // Create a batch with quantity
         let shipping_batch = domain::Batch::new("ref-id", "blue-vase", 10, true);
         let warehouse_batch = domain::Batch::new("ref-id", "blue-vase", 10, false);
+        // Create order with quantity
+        let order_line = domain::OrderLine::new("order-ref-id", "blue-vase", 10);
+
+        allocator.add_batch(shipping_batch);
+        allocator.add_batch(warehouse_batch);
+        allocator.allocate(&order_line);
+
+        let sorted_batches = allocator.get_batches();
+
+        assert_eq!(sorted_batches[0].quantity, 0);
+        assert_eq!(sorted_batches[1].quantity, 10);
+        assert_eq!(sorted_batches[1].is_shipping, true);
+
+    }
+
+    #[test]
+    fn test_allocates_prefer_earlier_shipping_batches() {
+        let mut allocator = domain::BatchAllocator::new();
+        // Create a batch with quantity
+        let shipping_batch = domain::Batch::new("ref-id", "blue-vase", 10, true);
+        let warehouse_batch = domain::Batch::new("ref-id", "blue-vase", 10, true);
         // Create order with quantity
         let order_line = domain::OrderLine::new("order-ref-id", "blue-vase", 10);
 
