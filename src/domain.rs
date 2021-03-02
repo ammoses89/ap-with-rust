@@ -11,19 +11,21 @@ pub struct BatchAllocator {
    batches: Vec<Batch>,
 }
 
+#[derive(Debug)]
+#[allow(dead_code)]
 pub struct Batch {
     reference: String,
-    sku: String,
-    pub(crate) quantity: i32,
-    eta: Date<Local>,
-    pub(crate) is_shipping: bool,
+    pub(crate) sku: String,
+    pub quantity: i32,
+    pub(crate) eta: Date<Local>,
+    pub is_shipping: bool,
     allocations: HashSet<String>,
 }
 
-pub struct Order {
-    order_reference: String,
-    order_lines: Vec<OrderLine>,
-}
+// pub struct Order {
+//     order_reference: String,
+//     order_lines: Vec<OrderLine>,
+// }
 
 pub struct OrderLine {
     order_reference: String,
@@ -134,8 +136,9 @@ impl Allocator for BatchAllocator {
         }
     }
 
-    fn deallocate(&mut self, order_line: &OrderLine) {
+    fn deallocate(&mut self, _order_line: &OrderLine) {
 
     }
 }
+
 
